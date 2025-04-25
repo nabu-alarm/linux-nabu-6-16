@@ -1,0 +1,82 @@
+name: package
+
+on: 
+  push:
+    branches: [ "main" ]
+
+  schedule:
+    - cron:  '30 2 * * 1'
+
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            gcc-aarch64-linux-gnu \
+            libarchive-dev \
+            libarchive-tools \
+            pkg-config \
+            libssl-dev \
+            libgpgme-dev \
+            meson
+
+      - name: Install pacman
+        shell: bash
+        env:
+          PACMAN_VERSION: 6.0.2
+        run: |
+          sudo git clone --depth 1 https://gitlab.archlinux.org/archlinux/packaging/packages/pacman.git
+          pushd pacman
+            sudo git clone --depth 1 https://gitlab.archlinux.org/pacman/pacman.git pacman-git
+            pushd pacman-git
+              sudo meson setup --prefix=/usr \
+                        --buildtype=plain \
+                        -Ddoc=disabled \
+                        -Ddoxygen=enabled \
+                        -Dscriptlet-shell=/usr/bin/bash \
+                        -Dldconfig=/usr/bin/ldconfig \
+                        build
+              sudo meson compile -C build
+              sudo meson install -C build
+            popd
+            sudo install -m644 pacman.conf /etc/pacman.conf
+            sudo install -m644 makepkg.conf /etc/
+            sudo mkdir -p /etc/pacman.d
+            sudo touch /etc/pacman.d/mirrorlist
+          popd
+
+      - name: Run makepkg
+        shell: bash
+        run: |
+          makepkg -d --config ./makepkg.conf
+          source PKGBUILD
+          echo "PACKAGE_NAME=$pkgbase-$pkgver-$pkgrel" >> $GITHUB_ENV
+      
+      - name: Copy Package Files
+        run: |
+          mkdir -p ./artifacts
+          find . -type f -name '*.pkg.tar.*' -exec cp '{}' ./artifacts/ ';'
+      
+      - name: Release assets
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.PACKAGE_NAME }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ env.PACKAGE_NAME }}
+          draft: false
+          prerelease: false
+          files: |
+            ./artifacts/*.pkg.tar.*
