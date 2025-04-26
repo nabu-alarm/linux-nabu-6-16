@@ -95,7 +95,7 @@ pkgver() {
 _package() {
   pkgdesc="The $pkgdesc kernel and modules"
   depends=(
-    'linux-firmware-xiaomi-nabu>=20252903'
+    'linux-firmware-xiaomi-nabu>=25.03.29'
     'coreutils'
     'initramfs'
     'kmod'
