@@ -1,4 +1,4 @@
-name: package
+name: Make packages
 
 on: 
   push:
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 jobs:
-  kernel:
+  Packages:
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +36,6 @@ jobs:
 
       - name: Install pacman
         shell: bash
-        env:
-          PACMAN_VERSION: 6.0.2
         run: |
           sudo git clone --depth 1 https://gitlab.archlinux.org/archlinux/packaging/packages/pacman.git
           pushd pacman
@@ -59,27 +57,27 @@ jobs:
             sudo touch /etc/pacman.d/mirrorlist
           popd
 
-      - name: Run makepkg
+      - name: Make packages
         shell: bash
         run: |
           makepkg -d --config ./makepkg.conf
           source PKGBUILD
           echo "PACKAGE_NAME=$pkgbase-$pkgver-$pkgrel" >> $GITHUB_ENV
       
-      - name: Copy Package Files
+      - name: Copy packages
+        shell: bash
         run: |
           mkdir -p ./artifacts
           find . -type f -name '*.pkg.tar.*' -exec cp '{}' ./artifacts/ ';'
       
-      - name: Release assets
+      - name: Release packages
         uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.PACKAGE_NAME }}
           target_commitish: ${{ github.sha }}
           name: ${{ env.PACKAGE_NAME }}
           draft: false
           prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             ./artifacts/*.pkg.tar.*
