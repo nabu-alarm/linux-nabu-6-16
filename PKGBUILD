@@ -34,8 +34,8 @@ options=(
   !strip
 )
 source=(
-  "$_srcname::git+https://gitlab.com/sm8150-mainline/linux.git#branch=$_branch"
-  "extra.config"
+  "$_srcname::$url/-/archive/$_branch/$_srcname.tar.gz"
+  "nabu.config"
 )
 sha256sums=(
   "SKIP"
@@ -65,8 +65,7 @@ prepare() {
   done
 
   echo "Setting config..."
-  cp ../extra.config ./arch/$KARCH/configs/extra.config
-  make defconfig sm8150.config extra.config
+  cp ../nabu.config .config
 
   make -s kernelrelease >version
 
