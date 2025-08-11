@@ -34,7 +34,7 @@ options=(
   !strip
 )
 source=(
-  "$_srcname::$url/-/archive/$_branch/$_srcname.tar.gz"
+  "$_srcname.tar.gz::$url/-/archive/$_branch/$_srcname.tar.gz"
   "nabu.config"
 )
 sha256sums=(
