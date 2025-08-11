@@ -34,7 +34,7 @@ options=(
   !strip
 )
 source=(
-  "$_srcname.tar.gz::$url/-/archive/$_branch/$_srcname.tar.gz"
+  "$_srcname::git+https://gitlab.com/sm8150-mainline/linux.git#branch=$_branch"
   "nabu.config"
 )
 sha256sums=(
@@ -82,7 +82,7 @@ build() {
 
 pkgver() {
   cd $_srcname
-  printf "%s.%s" "$(make kernelversion -s)" "$(git rev-parse --short=12 HEAD)"
+  printf "%s.%s" "$(make kernelversion -s)"
 }
 
 _package() {
