@@ -1,6 +1,6 @@
 pkgbase=linux-nabu
 _branch=sm8150/6.16
-_srcname='linux-sm8150-6.16'
+_srcname=linux-nabu
 pkgver=6.14.0.defb39db31e6
 pkgrel=1
 pkgdesc='Snapdragon 855 Mainline Linux'
@@ -36,8 +36,14 @@ options=(
 source=(
   "$_srcname::git+https://gitlab.com/sm8150-mainline/linux.git#branch=$_branch"
   "nabu.config"
+  "https://g.tx0.su/tx0/nabu-mainline-patches/raw/branch/main/0001-HACK-NABU-add-clk-delay-for-UFS.patch"
+  "https://g.tx0.su/tx0/nabu-mainline-patches/raw/branch/main/0002-HACK-NABU-change-freq-table-for-UFS.patch"
+  "https://g.tx0.su/tx0/nabu-mainline-patches/raw/branch/main/0003-NABU-dts-enable-ln8000-charger-reduce-charge-voltage.patch"
 )
 sha256sums=(
+  "SKIP"
+  "SKIP"
+  "SKIP"
   "SKIP"
   "SKIP"
 )
@@ -66,6 +72,7 @@ prepare() {
 
   echo "Setting config..."
   cp ../nabu.config .config
+  make oldconfig
 
   make -s kernelrelease >version
 
@@ -82,7 +89,7 @@ build() {
 
 pkgver() {
   cd $_srcname
-  printf "%s.%s" "$(make kernelversion -s)"
+  printf "%s.%s" "$(make kernelversion -s)" "$(git rev-parse --short=12 HEAD)"
 }
 
 _package() {
